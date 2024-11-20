@@ -80,13 +80,13 @@ jobs:
       uses: actions/checkout@v2
     
     - name: Create Pull Request
-      uses: peter-evans/create-pull-request@v2
+      uses: repo-sync/pull-request@v2
       with:
-        branch: main
-        base: feature/terraform-destroy
-        token: ${{ secrets.GITHUB_TOKEN }}
-        title: "Add Terraform Destroy"
-        body: "This PR adds the necessary Terraform destroy stage."
+        source_branch: main
+        destination_branch: feature/terraform-destroy
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        pr_title: "Add Terraform Destroy"
+        pr_body: "This PR adds the necessary Terraform destroy stage."
        
 
 
