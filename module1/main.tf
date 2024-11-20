@@ -24,7 +24,7 @@ resource "aws_security_group" "appsg2" {
   }
 }
 
-resource "aws_instance" "sampleapp-2" {
+resource "aws_instance" "sampleapp1" {
     ami = var.ami_id
     instance_type = var.instance_type
     vpc_security_group_ids = [aws_security_group.appsg2.id]
