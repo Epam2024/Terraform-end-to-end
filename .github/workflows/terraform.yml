@@ -68,3 +68,29 @@ jobs:
   
     - name: Terraform Apply
       run: terraform apply -auto-approve tfplan  
+
+  # Stage 3: Terraform Destroy (Requires Manual Approval)
+  destroy:
+    runs-on: ubuntu-latest
+    needs: apply # Wait for the apply job to finish
+    steps:
+    - name: Await Approval for Destroy
+      uses: hmarr/auto-approve-action@v2
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+      env:
+        APPROVAL_TEXT: "Approval required before destroy step"
+
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: 1.0.0
+
+    - name: Terraform Init
+      run: terraform init
+
+    - name: Terraform Destroy
+      run: terraform destroy --auto-approve    
