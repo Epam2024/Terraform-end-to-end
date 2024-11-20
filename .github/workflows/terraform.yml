@@ -36,9 +36,12 @@ jobs:
       run: terraform init
     - name: Terraform Plan
       run: terraform plan
-    - name: Terraform Import
-      run:  terraform import aws_instance.instance1 i-00e958e53f3d9c1b4
-            terraform import aws_instance.instance2 i-0cc464aef7d2c0ef1
+    # Step 1: Import Instance1
+    - name: Import EC2 Instance1
+      run: terraform import aws_instance.instance1 i-00e958e53f3d9c1b4
+    # Step 2: Import Instance2
+    - name: Import EC2 Instance2
+      run: terraform import aws_instance.instance2 i-0cc464aef7d2c0ef1
     - name: Terraform Apply
       run: terraform apply  --auto-approve  
     - name: Terraform Destroy
