@@ -37,7 +37,7 @@ jobs:
     - name: Terraform Plan
       run: terraform plan
     - name: Terraform Import
-      run: terraform import aws_instance.myec2 {{ secrets.AWS_INSTANCE_ID }} 
+      run:  terraform import aws_instance.my_instance ${{ secrets.INSTANCE_ID }}
     - name: Terraform Apply
       run: terraform apply  --auto-approve  
     - name: Terraform Destroy
