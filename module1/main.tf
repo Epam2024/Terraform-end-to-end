@@ -1,22 +1,5 @@
-resource "aws_instance" "sampleapp-1" {
-
-    ami = var.ami_id
-    instance_type = var.instance_type
-    vpc_security_group_ids = [aws_security_group.appsg1.id]
-
-  user_data = <<-EOF
-      #!/bin/sh
-      sudo apt-get update
-      sudo apt install -y apache2
-      sudo systemctl status apache2
-      sudo systemctl start apache2
-      sudo chown -R $USER:$USER /var/www/html
-      sudo echo "<html><body><h1>Hello this is module-1 at instance id `curl http://169.254.169.254/latest/meta-data/instance-id` </h1></body></html>" > /var/www/html/index.html
-      EOF
-}
-
-resource "aws_security_group" "appsg1" {
-    name        = "ec2sg1"
+resource "aws_security_group" "appsg2" {
+    name        = "ec2sg3"
   description = "Webserver for EC2 Instances"
 
   ingress {
@@ -39,4 +22,20 @@ resource "aws_security_group" "appsg1" {
     to_port     = 0
     cidr_blocks = ["0.0.0.0/0"]
   }
+}
+
+resource "aws_instance" "sampleapp-2" {
+    ami = var.ami_id
+    instance_type = var.instance_type
+    vpc_security_group_ids = [aws_security_group.appsg2.id]
+
+  user_data = <<-EOF
+      #!/bin/sh
+      sudo apt-get update
+      sudo apt install -y apache2
+      sudo systemctl status apache2
+      sudo systemctl start apache2
+      sudo chown -R $USER:$USER /var/www/html
+      sudo echo "<html><body><h1>Hello this is module-1 at instance id `curl http://169.254.169.254/latest/meta-data/instance-id` </h1></body></html>" > /var/www/html/index.html
+      EOF
 }

@@ -1,5 +1,5 @@
 resource "aws_security_group" "appsg2" {
-    name        = "ec2sg2"
+    name        = "ec2sg4"
   description = "Webserver for EC2 Instances"
 
   ingress {
