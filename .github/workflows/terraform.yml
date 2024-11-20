@@ -1,4 +1,4 @@
-name: Terraform Workflow with Plan, Apply, and Destroy Stages
+name: Terraform Workflow with Plan, Apply, PR Approval, and Destroy Stages
 
 on:
   push:
@@ -39,7 +39,7 @@ jobs:
         name: terraform-plan
         path: tfplan
 
- #Stage 2: Terraform Apply
+ # Stage 2: Terraform Apply
   apply:
     runs-on: ubuntu-latest
     needs: plan
@@ -56,7 +56,7 @@ jobs:
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
       with:
-        terraform_version: 1.0.0
+        terraform_version: 1.3.6
   
     - name: Terraform Init Before Apply
       run: terraform init
@@ -69,18 +69,31 @@ jobs:
     - name: Terraform Apply
       run: terraform apply -auto-approve tfplan  
 
-  # Stage 3: Terraform Destroy (Requires Manual Approval)
-  destroy:
+  # Stage 3: Pull Request for Approval
+  pull-request:
     runs-on: ubuntu-latest
-    needs: apply # Wait for the apply job to finish
+    needs: apply # Triggered after Apply stage
     steps:
-    - name: Await Approval for Destroy
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Create Pull Request
+      uses: repo-sync/pull-request@v2
+      with:
+        destination_branch: main
+        source_branch: feature/terraform-destroy
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Auto-Approve Pull Request
       uses: hmarr/auto-approve-action@v2
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
-      env:
-        APPROVAL_TEXT: "Approval required before destroy step"
 
+  # Stage 4: Terraform Destroy (After PR Approval)
+  destroy:
+    runs-on: ubuntu-latest
+    needs: pull-request # Triggered only after PR is created and approved
+    steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
 
@@ -93,4 +106,5 @@ jobs:
       run: terraform init
 
     - name: Terraform Destroy
-      run: terraform destroy --auto-approve    
+      run: terraform destroy --auto-approve
+
