@@ -58,53 +58,58 @@ jobs:
       with:
         terraform_version: 1.0.0
   
-    - name: Terraform Init Before Apply
+    - name: Terraform Init 
       run: terraform init
   
-    - name: Download Plan Artifact
-      uses: actions/download-artifact@v3
+    - name: Terraform Plan
+      run: terraform plan -out=tfplan 
+    
+    - name: Save plan artifact
+      uses: actions/upload-artifact@v3
       with:
         name: terraform-plan
-  
-    - name: Terraform Apply
-      run: terraform apply -auto-approve tfplan  
+        path: tfplan
 
-  # Stage 3: Pull Request for Approval
+
+  # Stage 3: Create Pull Request  
   pull-request:
     runs-on: ubuntu-latest
-    needs: apply # Triggered after Apply stage
+    needs: apply
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
-
+    
     - name: Create Pull Request
-      uses: repo-sync/pull-request@v2
+      uses: peter-evans/create-pull-request@v2
       with:
-        destination_branch: main
-        source_branch: feature/terraform-destroy
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: main
+        base: feature/terraform-destroy
+        token: ${{ secrets.GITHUB_TOKEN }}
+        title: "Add Terraform Destroy"
+        body: "This PR adds the necessary Terraform destroy stage."
+       
 
-    - name: Auto-Approve Pull Request
-      uses: hmarr/auto-approve-action@v2
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
 
   # Stage 4: Terraform Destroy (After PR Approval)
   destroy:
     runs-on: ubuntu-latest
-    needs: pull-request # Triggered only after PR is created and approved
+    needs: pull-request
+    if: github.event.inputs.approval == 'true'
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v2
+      - name: Checkout Repository
+        uses: actions/checkout@v2
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-      with:
-        terraform_version: 1.0.0
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.0.0
 
-    - name: Terraform Init
-      run: terraform init
+      - name: Terraform Init
+        run: terraform init
 
-    - name: Terraform Destroy
-      run: terraform destroy --auto-approve
+      - name: Terraform Destroy
+        run: terraform destroy --auto-approve
+
+      - name: Terraform Destroy
+        run: terraform destroy --auto-approve
 
