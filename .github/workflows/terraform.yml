@@ -39,49 +39,32 @@ jobs:
         name: terraform-plan
         path: tfplan
 
-  # Stage 2: Terraform Apply
+ #Stage 2: Terraform Apply
   apply:
     runs-on: ubuntu-latest
-    needs: plan # Wait for the plan job to finish
+    needs: plan
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
 
+    - name: Setup AWS Credentials
+      run: |
+         echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+         echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+         echo "AWS_DEFAULT_REGION=us-east-1" >> $GITHUB_ENV
+  
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
       with:
         terraform_version: 1.0.0
-
+  
+    - name: Terraform Init Before Apply
+      run: terraform init
+  
     - name: Download Plan Artifact
       uses: actions/download-artifact@v3
       with:
         name: terraform-plan
-
+  
     - name: Terraform Apply
-      run: terraform apply -auto-approve tfplan
-
-  # Stage 3: Terraform Destroy (Requires Manual Approval)
-  destroy:
-    runs-on: ubuntu-latest
-    needs: apply # Wait for the apply job to finish
-    steps:
-    - name: Await Approval for Destroy
-      uses: hmarr/auto-approve-action@v2
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-      env:
-        APPROVAL_TEXT: "Approval required before destroy step"
-
-    - name: Checkout Repository
-      uses: actions/checkout@v2
-
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-      with:
-        terraform_version: 1.0.0
-
-    - name: Terraform Init
-      run: terraform init
-
-    - name: Terraform Destroy
-      run: terraform destroy --auto-approve
+      run: terraform apply -auto-approve tfplan  
